@@ -30,7 +30,23 @@ if [ "${WU}" != "2000" ]; then
     RUN_NAME=$RUN_NAME-WU-$WU
 fi
 
-CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --master-port=$PORT main.py \
+# CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --master-port=$PORT main.py \
+#     --model_type cola \
+#     --model_config cola_configs/$CONFIG_NAME.json \
+#     --lr $LR \
+#     --optimizer adamw \
+#     --batch_size $BZ \
+#     --total_batch_size 512 \
+#     --num_training_steps $STEPS \
+#     --warmup_steps $WU \
+#     --weight_decay $WD \
+#     --dtype bfloat16 \
+#     --eval_every 1000 \
+#     --grad_clipping $GC \
+#     --run_name $RUN_NAME \
+#     > /home/public/nshiva/code/CoLA/results/cola/$RUN_NAME.log 2>&1 &
+
+CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 --master-port=$PORT main.py \
     --model_type cola \
     --model_config cola_configs/$CONFIG_NAME.json \
     --lr $LR \
@@ -43,5 +59,4 @@ CUDA_VISIBLE_DEVICES=$DEVICE torchrun --standalone --nproc-per-node=$NGPU --mast
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping $GC \
-    --run_name $RUN_NAME \
-    > /home/public/nshiva/code/CoLA/results/cola/$RUN_NAME.log 2>&1 &
+    --run_name $RUN_NAME
