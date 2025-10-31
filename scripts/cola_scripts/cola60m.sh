@@ -51,7 +51,7 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 --master-port=$P
     --model_config cola_configs/$CONFIG_NAME.json \
     --lr $LR \
     --optimizer adamw \
-    --batch_size $BZ \
+    --batch_size 16 \
     --total_batch_size 512 \
     --num_training_steps $STEPS \
     --warmup_steps $WU \
