@@ -4,7 +4,7 @@ NGPU="${#array[@]}"
 PORT=$(($RANDOM + 10000))
 
 RUN_NAME=${RUN_NAME:-"None"}
-CONFIG_NAME=${CONFIG_NAME:-"cola_60m"}
+CONFIG_NAME=${CONFIG_NAME:-"cola_60m-seed42"}
 LR=${LR:-"0.006"}
 WD=${WD:-"0.01"}
 GC=${GC:-"0.5"}
