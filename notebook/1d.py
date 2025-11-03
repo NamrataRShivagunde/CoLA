@@ -195,7 +195,7 @@ def main():
         torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
         device_map="auto"
     )
-    tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 
     # 2. Data Setup
     dataloader = get_dataloader(tokenizer)
