@@ -6,6 +6,8 @@ from transformers.models.qwen2.tokenization_qwen2 import Qwen2Tokenizer # Explic
 from datasets import load_dataset
 from typing import List, Callable, Dict
 
+from cola.cola_model import ColaForCausalLM
+
 # Model Configuration
 CUDA_VISIBLE_DEVICES = "0"  # Set to specific GPU ID or use "cuda" for automatic selection
 MODEL_NAME = "code/CoLA/checkpoints/cola_60m-2025-11-03-16-14-50/model_1000" 
@@ -190,7 +192,7 @@ def main():
     print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
     # Load model without bitsandbytes quantization, potentially in bfloat16
-    model = AutoModelForCausalLM.from_pretrained(
+    model = ColaForCausalLM.from_pretrained(
         MODEL_NAME,
         torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
         device_map="auto"
