@@ -21,8 +21,7 @@ class ColaLayer(nn.Module):
 
         if lr_act:
             self.lr_act = ACT2FN[lr_act_type]
-
-        torch.manual_seed(42)
+            
         target_sdv = (in_features + out_features) ** (-1 / 2)
         self.cola_a = nn.Parameter(
             torch.randn(in_features, rank) / rank ** (1 / 4) * target_sdv ** (1 / 2)

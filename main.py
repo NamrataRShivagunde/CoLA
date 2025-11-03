@@ -51,7 +51,7 @@ def parse_args(args):
         "--model_type", type=str, default="cola", choices=["cola", "cola_m", "llama"]
     )
     parser.add_argument("--run_name", type=str, default=None)
-    parser.add_argument("--wandb_project", type=str, default="galore-c4")
+    parser.add_argument("--wandb_project", type=str, default="loss-landscape-low-rank")
     parser.add_argument("--model_config", type=str, required=True)
     parser.add_argument("--offline_mode", default=False, action="store_true")
     parser.add_argument("--continue_from", type=str, default=None)
@@ -86,7 +86,7 @@ def parse_args(args):
         help="Number of tokens to train on. Overwrites num_training_steps. "
         "You can use M and B suffixes, e.g. 100M or 1B.",
     )
-    parser.add_argument("--save_every", type=int, default=10_000)
+    parser.add_argument("--save_every", type=int, default=1000)
     parser.add_argument("--save_dir", type=str, default=None)
     parser.add_argument("--tags", type=str, default=None)
     parser.add_argument(
