@@ -179,7 +179,7 @@ class LossLandscapeDrawer:
         plt.legend()
         plt.tight_layout()
         plt.show()
-        plt.savefig("loss_landscape_1d.png", dpi=300)
+        plt.savefig(f"loss_landscape_1d_cola_1000.png", dpi=300)
 
 # =========================================================================
 # === 6. MAIN EXECUTION ===
@@ -191,7 +191,7 @@ def main():
 
     # Load model without bitsandbytes quantization, potentially in bfloat16
     model = AutoModelForCausalLM.from_pretrained(
-        "facebook/opt-125m",
+        MODEL_NAME,
         torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
         device_map="auto"
     )
