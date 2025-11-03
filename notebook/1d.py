@@ -6,7 +6,7 @@ from transformers.models.qwen2.tokenization_qwen2 import Qwen2Tokenizer # Explic
 from datasets import load_dataset
 from typing import List, Callable, Dict
 
-from cola.cola_model import ColaForCausalLM
+from cola import ColaConfig, ColaForCausalLM, ColaMForCausalLM
 
 # Model Configuration
 CUDA_VISIBLE_DEVICES = "0"  # Set to specific GPU ID or use "cuda" for automatic selection
