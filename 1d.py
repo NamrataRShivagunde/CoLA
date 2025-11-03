@@ -195,7 +195,8 @@ def main():
     model = ColaForCausalLM.from_pretrained(
         MODEL_NAME,
         torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
-        device_map="auto"
+        device_map="auto",
+        local_files_only=True
     )
     tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 
