@@ -46,7 +46,7 @@ fi
 #     --run_name $RUN_NAME \
 #     > /home/public/nshiva/code/CoLA/results/cola/$RUN_NAME.log 2>&1 &
 
-CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 --master-port=$PORT main.py \
+CUDA_VISIBLE_DEVICES=3 torchrun --standalone --nproc-per-node=1 --master-port=$PORT main.py \
     --model_type cola \
     --model_config cola_configs/$CONFIG_NAME.json \
     --lr $LR \

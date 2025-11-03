@@ -1,6 +1,6 @@
 import json
 from transformers import LlamaConfig
-from transformers.modeling_rope_utils import rope_config_validation
+#from transformers.modeling_rope_utils import rope_config_validation
 
 
 class ColaConfig(LlamaConfig):
