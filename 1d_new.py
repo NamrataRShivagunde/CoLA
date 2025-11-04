@@ -48,7 +48,7 @@ def get_dataloader(tokenizer: AutoTokenizer):
     print("Loading C4 validation subset (10%)...")
 
     # Load 10% of validation split of C4 dataset
-    dataset = load_dataset("allenai/c4", "en", split="validation[:10%]")
+    dataset = load_dataset("stas/c4-en-10k", "en", split="train")
 
     def tokenize_function(examples):
         return tokenizer(
