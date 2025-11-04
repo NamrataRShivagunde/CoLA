@@ -45,14 +45,30 @@ def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.D
 # Load Data
 # =====================================================================
 def get_dataloader(tokenizer: AutoTokenizer):
-    print("Loading wikitext-2...")
-    dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
+    print("Loading C4 validation subset (10%)...")
+
+    # Load 10% of validation split of C4 dataset
+    dataset = load_dataset("allenai/c4", "en", split="validation[:10%]")
 
     def tokenize_function(examples):
-        return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=128)
+        return tokenizer(
+            examples["text"],
+            truncation=True,
+            padding="max_length",
+            max_length=128
+        )
 
-    tokenized = dataset.map(tokenize_function, batched=True, remove_columns=["text"])
+    # Tokenize dataset
+    tokenized = dataset.map(
+        tokenize_function,
+        batched=True,
+        remove_columns=["text"]
+    )
+
+    # Convert to torch tensors
     tokenized.set_format(type="torch", columns=["input_ids", "attention_mask"])
+
+    # Return DataLoader
     return torch.utils.data.DataLoader(tokenized, batch_size=4)
 
 
