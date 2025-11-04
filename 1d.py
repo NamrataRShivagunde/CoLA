@@ -10,7 +10,7 @@ from cola import ColaConfig, ColaForCausalLM, ColaMForCausalLM
 
 # Model Configuration
 CUDA_VISIBLE_DEVICES = "0"  # Set to specific GPU ID or use "cuda" for automatic selection
-MODEL_NAME = "code/CoLA/checkpoints/cola_60m-2025-11-03-16-14-50/model_1000" 
+MODEL_NAME = "checkpoints/cola_60m-2025-11-03-16-14-50/model_1000" 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Loss Landscape Configuration (Alpha points for X-axis)
@@ -191,12 +191,12 @@ def main():
     # 1. Model and Tokenizer Setup
     print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
+    model_config = ColaConfig.from_pretrained(MODEL_NAME)
+
     # Load model without bitsandbytes quantization, potentially in bfloat16
     model = ColaForCausalLM.from_pretrained(
         MODEL_NAME,
         torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
-        device_map="auto",
-        local_files_only=True
     )
     tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 

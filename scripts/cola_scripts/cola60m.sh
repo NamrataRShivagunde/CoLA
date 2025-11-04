@@ -16,7 +16,8 @@ else
     readonly continue_from_flag=""
 fi
 
-RUN_NAME=$CONFIG_NAME-LR-$LR
+SEED=${SEED:-"0"}
+RUN_NAME=$CONFIG_NAME-LR-$LR-SEED-$SEED
 TAG=${TAG:-"none"}
 if [ "${TAG}" != "none" ]; then
     RUN_NAME=$TAG-$RUN_NAME
@@ -59,4 +60,5 @@ CUDA_VISIBLE_DEVICES=3 torchrun --standalone --nproc-per-node=1 --master-port=$P
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping $GC \
-    --run_name $RUN_NAME
+    --run_name $RUN_NAME \
+    --seed $SEED 
