@@ -32,8 +32,13 @@ def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.D
         for i, batch in enumerate(dataloader):
             if i >= MAX_BATCHES:
                 break
-            input_ids = batch["input_ids"].to(model_device)
-            attention_mask = batch["attention_mask"].to(model_device)
+            # input_ids = batch["input_ids"].to(model_device)
+            # attention_mask = batch["attention_mask"].to(model_device)
+            if isinstance(batch, dict):
+                input_ids = batch["input_ids"].to(model_device)
+                attention_mask = batch["attention_mask"].to(model_device)
+            else:
+                input_ids, attention_mask = [x.to(model_device) for x in batch]
             outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
             total_loss += outputs.loss.item()
             total_batches += 1
