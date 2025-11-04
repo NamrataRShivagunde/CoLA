@@ -61,7 +61,7 @@ def get_dataloader(tokenizer: AutoTokenizer):
 
     # 2️⃣ Compute how many samples ~1% is (C4 val ~364M examples total → 1% ≈ 3.6M)
     # But we don’t need *that* many for a loss landscape — we’ll just take first N streamed examples.
-    MAX_EXAMPLES = 1000000  # adjust this smaller/larger to control size
+    MAX_EXAMPLES = 100000  # adjust this smaller/larger to control size
     print(f"Sampling first {MAX_EXAMPLES} examples from streaming dataset...")
 
     # 3️⃣ Take the first N examples from the stream
