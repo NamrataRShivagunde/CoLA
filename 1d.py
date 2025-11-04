@@ -191,13 +191,14 @@ class LossLandscapeDrawer:
 
 def main():
     # 1. Model and Tokenizer Setup
-    print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
+    
 
     checkpoints = ["model_1000", "model_2000", "model_3000", "model_4000", "model_5000", "model_6000", "model_7000", "model_8000", "model_9000", "model_10000"]
 
     for m in checkpoints:
 
         MODEL_NAME = "checkpoints/cola_60m-2025-11-03-16-14-50/{m}" 
+        print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
         model_config = ColaConfig.from_pretrained(MODEL_NAME)
 
