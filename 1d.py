@@ -197,7 +197,7 @@ def main():
 
     for m in checkpoints:
 
-        MODEL_NAME = "checkpoints/cola_60m-2025-11-03-16-14-50/{m}" 
+        MODEL_NAME = f"checkpoints/cola_60m-2025-11-03-16-14-50/{m}" 
         print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
         model_config = ColaConfig.from_pretrained(MODEL_NAME)
