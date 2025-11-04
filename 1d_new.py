@@ -45,11 +45,28 @@ def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.D
 # Load Data
 # =====================================================================
 def get_dataloader(tokenizer: AutoTokenizer):
-    print("Loading C4 validation subset (10%)...")
+    """
+    Loads ~1% of the C4 validation split in streaming mode.
+    This avoids downloading the entire dataset — only streams what is used.
+    """
+    print("Loading C4 validation split (1%) in streaming mode...")
 
-    # Load 10% of validation split of C4 dataset
-    dataset = load_dataset("stas/c4-en-10k", split="train")
+    # 1️⃣ Stream the dataset — nothing big gets downloaded upfront
+    dataset = load_dataset("allenai/c4", "en", split="validation", streaming=True)
 
+    # 2️⃣ Compute how many samples ~1% is (C4 val ~364M examples total → 1% ≈ 3.6M)
+    # But we don’t need *that* many for a loss landscape — we’ll just take first N streamed examples.
+    MAX_EXAMPLES = 100  # adjust this smaller/larger to control size
+    print(f"Sampling first {MAX_EXAMPLES} examples from streaming dataset...")
+
+    # 3️⃣ Take the first N examples from the stream
+    streamed_samples = []
+    for i, example in enumerate(dataset):
+        if i >= MAX_EXAMPLES:
+            break
+        streamed_samples.append(example)
+
+    # 4️⃣ Tokenize them
     def tokenize_function(examples):
         return tokenizer(
             examples["text"],
@@ -58,18 +75,24 @@ def get_dataloader(tokenizer: AutoTokenizer):
             max_length=128
         )
 
-    # Tokenize dataset
-    tokenized = dataset.map(
-        tokenize_function,
-        batched=True,
-        remove_columns=["text"]
+    tokenized = tokenizer(
+        [ex["text"] for ex in streamed_samples],
+        truncation=True,
+        padding="max_length",
+        max_length=128,
+        return_tensors="pt"
     )
 
-    # Convert to torch tensors
-    tokenized.set_format(type="torch", columns=["input_ids", "attention_mask"])
+    # 5️⃣ Build a simple PyTorch DataLoader
+    dataset_torch = torch.utils.data.TensorDataset(
+        tokenized["input_ids"],
+        tokenized["attention_mask"]
+    )
+    dataloader = torch.utils.data.DataLoader(dataset_torch, batch_size=4, shuffle=False)
 
-    # Return DataLoader
-    return torch.utils.data.DataLoader(tokenized, batch_size=4)
+    print(f"DataLoader ready with {len(dataset_torch)} examples.")
+    return dataloader
+
 
 
 # =====================================================================
