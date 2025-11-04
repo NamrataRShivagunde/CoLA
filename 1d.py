@@ -75,8 +75,8 @@ def get_dataloader(tokenizer: AutoTokenizer) -> torch.utils.data.DataLoader:
     """Loads and processes the Wikitext-2 dataset."""
     print("Loading c4-val dataset...")
     # Using Wikitext-2-raw-v1 (small, common benchmark)
-    #dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
-    dataset = load_dataset("allenai/c4", "en", split="validation[:10]")
+    dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
+    #dataset = load_dataset("allenai/c4", "en", split="validation[:10]")
     # dataset = list(dataset)
 
     def tokenize_function(examples):
@@ -167,7 +167,7 @@ class LossLandscapeDrawer:
 
         return {"alphas": alphas, "loss_values": np.array(loss_values)}
 
-    def plot_1d(self, results: Dict[str, np.ndarray]):
+    def plot_1d(self, model_name, results: Dict[str, np.ndarray]):
         """Plots the 1D loss landscape."""
         alphas = results["alphas"]
         loss_values = results["loss_values"]
@@ -183,7 +183,7 @@ class LossLandscapeDrawer:
         plt.legend()
         plt.tight_layout()
         plt.show()
-        plt.savefig(f"loss_landscape_1d_cola_1000.png", dpi=300)
+        plt.savefig(f"loss_landscape_1d_cola_{model_name}.png", dpi=300)
 
 # =========================================================================
 # === 6. MAIN EXECUTION ===
@@ -193,26 +193,32 @@ def main():
     # 1. Model and Tokenizer Setup
     print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
-    model_config = ColaConfig.from_pretrained(MODEL_NAME)
+    checkpoints = ["model_1000", "model_2000", "model_3000", "model_4000", "model_5000", "model_6000", "model_7000", "model_8000", "model_9000", "model_10000"]
 
-    # Load model without bitsandbytes quantization, potentially in bfloat16
-    model = ColaForCausalLM.from_pretrained(
-        MODEL_NAME,
-        torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
-        device_map="auto"  # Automatically place model on available devices
-    )
-    tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+    for m in checkpoints:
 
-    # 2. Data Setup
-    dataloader = get_dataloader(tokenizer)
+        MODEL_NAME = "checkpoints/cola_60m-2025-11-03-16-14-50/{m}" 
 
-    # 3. Initialize Drawer and Compute Landscape
-    drawer = LossLandscapeDrawer(model, dataloader)
+        model_config = ColaConfig.from_pretrained(MODEL_NAME)
 
-    results = drawer.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL)
+        # Load model without bitsandbytes quantization, potentially in bfloat16
+        model = ColaForCausalLM.from_pretrained(
+            MODEL_NAME,
+            torch_dtype=torch.bfloat16, # Specify bfloat16 dtype
+            device_map="auto"  # Automatically place model on available devices
+        )
+        tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
 
-    # 4. Plot Results
-    drawer.plot_1d(results)
+        # 2. Data Setup
+        dataloader = get_dataloader(tokenizer)
+
+        # 3. Initialize Drawer and Compute Landscape
+        drawer = LossLandscapeDrawer(model, dataloader)
+
+        results = drawer.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL)
+
+        # 4. Plot Results
+        drawer.plot_1d(m, results)
 
 if __name__ == "__main__":
     main()
