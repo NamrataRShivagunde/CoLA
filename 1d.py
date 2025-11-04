@@ -76,7 +76,7 @@ def get_dataloader(tokenizer: AutoTokenizer) -> torch.utils.data.DataLoader:
     print("Loading c4-val dataset...")
     # Using Wikitext-2-raw-v1 (small, common benchmark)
     #dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
-    dataset = load_dataset("allenai/c4", "en", split="validation[:10%]" ) # Use "c4" and "validation" split
+    dataset = load_dataset("allenai/c4", "en", split="validation[:1%]" ) # Use "c4" and "validation" split
     # dataset = dataset.take(1000) # <--- The key change
     # dataset = list(dataset)
 
