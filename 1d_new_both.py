@@ -17,7 +17,7 @@ ALPHA_INTERVAL = 0.0005
 # --- New BASE_DIR Definitions ---
 BASE_DIR_COLA = "checkpoints/cola_60m-2025-11-03-16-14-50"
 BASE_DIR_BASELINE = "../GaLore/checkpoints/llama_60m-2025-11-04-16-37-42"
-CHECKPOINTS = [f"model_{i}" for i in range(1000, 11000, 1000)]
+CHECKPOINTS = [f"model_{i}" for i in range(10000, 11000, 1000)]
 # --------------------------------
 
 # =====================================================================
@@ -194,7 +194,7 @@ def main():
         model_baseline = AutoModelForCausalLM.from_pretrained(model_path_baseline, torch_dtype=torch.bfloat16, device_map="auto")
         
         drawer_baseline = LossLandscapeDrawer(model_baseline, dataloader)
-        result_baseline = drawer_baseline.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL)
+        result_baseline = drawer_baseline.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL, pad_idx)
         all_results_baseline[m] = result_baseline
         del model_baseline # Free memory
         torch.cuda.empty_cache()
