@@ -43,19 +43,32 @@ def compute_loss(model, dataloader):
     return total / count
 
 
-def generate_shared_direction(model):
+def generate_shared_direction(model_cola, model_base):
     direction = {}
-    for name, p in model.named_parameters():
+    cola_params = dict(model_cola.named_parameters())
+    base_params = dict(model_base.named_parameters())
+
+    # use intersection of parameter names
+    shared_keys = set(cola_params.keys()) & set(base_params.keys())
+
+    for name in shared_keys:
+        p = base_params[name]  # magnitude defined from baseline
         d = torch.randn_like(p)
         d = d / (d.norm() + 1e-9) * (p.norm() + 1e-9)
-        direction[name] = d
+        direction[name] = d.to(p.device)
+
     return direction
+
 
 
 def apply_direction(model, base_params, direction, alpha):
     with torch.no_grad():
-        for (name, p), p0 in zip(model.named_parameters(), base_params.values()):
-            p.copy_(p0 + alpha * direction[name])
+        for name, p in model.named_parameters():
+            if name in direction:  # only modify shared params
+                p.copy_(base_params[name] + alpha * direction[name])
+            else:
+                p.copy_(base_params[name])  # restore unchanged params
+
 
 
 def main():
@@ -68,7 +81,7 @@ def main():
     cola_params0 = {n: p.detach().clone() for n, p in cola.named_parameters()}
     base_params0 = {n: p.detach().clone() for n, p in base.named_parameters()}
 
-    direction = generate_shared_direction(base)
+    direction = generate_shared_direction(cola, base)
 
     alphas = np.arange(ALPHA_MIN, ALPHA_MAX + ALPHA_INTERVAL, ALPHA_INTERVAL)
     cola_losses, base_losses = [], []
