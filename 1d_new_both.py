@@ -96,12 +96,12 @@ class LossLandscapeDrawer:
     #     # but sticking to the original implementation which uses a random direction per model.
     #     self.direction = [torch.randn_like(p.data).to(p.device) for p in model.parameters()] 
     class LossLandscapeDrawer:
-        def __init__(self, model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader, mode="2D"):
+        def __init__(self, model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader):
             self.model = model
             self.dataloader = dataloader
             self.original_params = {name: p.data.clone() for name, p in model.named_parameters()}
 
-            self.mode = mode  # "1D", "2D", etc.
+            self.mode = "1D"  # "1D", "2D", etc.
 
             # Construct directions
             self.x_direction = {}
