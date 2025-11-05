@@ -144,9 +144,10 @@ def main():
         model_path = f"{BASE_DIR}/{m}"
         print(f"\nLoading Model: {model_path}")
 
-        config = ColaConfig.from_pretrained(model_path)
-        model = ColaForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto")
-
+        # config = ColaConfig.from_pretrained(model_path)
+        # model = ColaForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto")
+        config = AutoConfig.from_pretrained(model_path)
+        model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map="auto")
         drawer = LossLandscapeDrawer(model, dataloader)
         result = drawer.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL)
         all_results[m] = result
