@@ -27,7 +27,7 @@ def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.D
     model.eval()
     total_loss = 0.0
     total_batches = 0
-    MAX_BATCHES = 5
+    MAX_BATCHES = 100
     model_device = next(model.parameters()).device
 
     with torch.no_grad():
