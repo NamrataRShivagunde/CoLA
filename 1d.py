@@ -183,7 +183,7 @@ class LossLandscapeDrawer:
         plt.legend()
         plt.tight_layout()
         plt.show()
-        plt.savefig(f"loss_landscape_1d_cola_{model_name}.png", dpi=300)
+        plt.savefig(f"loss_landscape_1d_baseline_{model_name}.png", dpi=300)
 
 # =========================================================================
 # === 6. MAIN EXECUTION ===
@@ -198,6 +198,7 @@ def main():
     for m in checkpoints:
 
         MODEL_NAME = f"checkpoints/cola_60m-2025-11-03-16-14-50/{m}" 
+        MODEL_NAME = f"../GaLore/checkpoints/llama_60m-2025-11-04-16-37-42/{m}"
         print(f"Loading Model: {MODEL_NAME} on {DEVICE}")
 
         model_config = ColaConfig.from_pretrained(MODEL_NAME)

@@ -9,9 +9,9 @@ from matplotlib import animation
 # Config
 # --------------------------
 CHECKPOINTS = [
-    'model_1000.pt', 'model_2000.pt', 'model_3000.pt',
-    'model_4000.pt', 'model_5000.pt', 'model_6000.pt',
-    'model_7000.pt', 'model_8000.pt', 'model_9000.pt', 'model_10000.pt'
+    'model_1000', 'model_2000', 'model_3000',
+    'model_4000', 'model_5000', 'model_6000',
+    'model_7000', 'model_8000', 'model_9000', 'model_10000'
 ]
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 

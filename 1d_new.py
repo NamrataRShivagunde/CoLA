@@ -15,6 +15,7 @@ ALPHA_MAX = 0.010
 ALPHA_INTERVAL = 0.0005
 
 BASE_DIR = "checkpoints/cola_60m-2025-11-03-16-14-50"
+BASE_DIR = "../GaLore/checkpoints/llama_60m-2025-11-04-16-37-42"  # Baseline model directory
 CHECKPOINTS = [f"model_{i}" for i in range(1000, 11000, 1000)]
 
 
@@ -177,7 +178,7 @@ def main():
 
     fig.suptitle("1D Loss Landscapes Across CoLA Checkpoints", fontsize=14)
     plt.tight_layout(rect=[0, 0, 1, 0.97])
-    plt.savefig("loss_landscape_cola_all.png", dpi=300)
+    plt.savefig("loss_landscape_baseline_all.png", dpi=300)
     plt.show()
 
 
