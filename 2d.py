@@ -13,6 +13,7 @@ ALPHA_MIN = -0.01
 ALPHA_MAX = 0.01
 ALPHA_INTERVAL = 0.002
 BASE_DIR = "checkpoints/cola_60m-2025-11-03-16-14-50"
+BASE_DIR = "../GaLore/checkpoints/llama_60m-2025-11-04-16-37-42"
 CHECKPOINTS = [f"model_{i}" for i in range(1000, 11000, 1000)]
 
 
@@ -154,7 +155,7 @@ def main():
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     cbar = fig.colorbar(contour, ax=axes, shrink=0.95)
     cbar.set_label("NLL Loss", rotation=270, labelpad=15)
-    plt.savefig("loss_landscape_cola_2d.png", dpi=300)
+    plt.savefig("loss_landscape_baseline_2d.png", dpi=300)
     plt.show()
 
 
