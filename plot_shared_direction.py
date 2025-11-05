@@ -48,35 +48,37 @@ def generate_shared_direction(model_cola, model_base):
     cola_params = dict(model_cola.named_parameters())
     base_params = dict(model_base.named_parameters())
 
-    # use intersection of parameter names
     shared_keys = set(cola_params.keys()) & set(base_params.keys())
 
     for name in shared_keys:
-        p = base_params[name]  # magnitude defined from baseline
-        d = torch.randn_like(p)
+        p = base_params[name]
+        d = torch.randn_like(p, device=p.device)
         d = d / (d.norm() + 1e-9) * (p.norm() + 1e-9)
-        direction[name] = d.to(p.device)
+        direction[name] = d
 
     return direction
+
 
 
 
 def apply_direction(model, base_params, direction, alpha):
     with torch.no_grad():
         for name, p in model.named_parameters():
-            if name in direction:  # only modify shared params
+            if name in direction:
                 p.copy_(base_params[name] + alpha * direction[name])
             else:
-                p.copy_(base_params[name])  # restore unchanged params
-
+                p.copy_(base_params[name])  # Restore untouched params
 
 
 def main():
     tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
     dataloader = get_dataloader(tokenizer)
 
-    cola = ColaForCausalLM.from_pretrained(f"{BASE_DIR_COLA}/{CHECKPOINT}", torch_dtype=torch.bfloat16, device_map="auto")
-    base = AutoModelForCausalLM.from_pretrained(f"{BASE_DIR_BASELINE}/{CHECKPOINT}", torch_dtype=torch.bfloat16, device_map="auto")
+    cola = ColaForCausalLM.from_pretrained(f"{BASE_DIR_COLA}/{CHECKPOINT}", torch_dtype=torch.bfloat16)
+    cola = cola.to(DEVICE)
+
+    base = AutoModelForCausalLM.from_pretrained(f"{BASE_DIR_BASELINE}/{CHECKPOINT}", torch_dtype=torch.bfloat16)
+    base = base.to(DEVICE)
 
     cola_params0 = {n: p.detach().clone() for n, p in cola.named_parameters()}
     base_params0 = {n: p.detach().clone() for n, p in base.named_parameters()}
