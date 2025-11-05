@@ -165,6 +165,7 @@ def main(mode="1D"):
         plt.legend()
         plt.title("1D Loss Landscape Comparison")
         plt.grid(True)
+        plt.savefig("loss_landscape_cola_vs_baseline_1d_v2.png", dpi=300)
         plt.show()
 
     else:
@@ -178,6 +179,7 @@ def main(mode="1D"):
         ax.set_ylabel(r"$\beta \times 10^{-3}$")
         ax.set_zlabel("NLL Loss")
         ax.set_title(f"2D Loss Landscape: {ckpt} (COLA)")
+        plt.savefig("loss_landscape_cola_2d_v2.png", dpi=300)
         plt.show()
 
 
