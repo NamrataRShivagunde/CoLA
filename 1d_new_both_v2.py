@@ -20,7 +20,7 @@ BETA_INTERVAL = 0.002   # Slightly coarser for 2D
 # Model checkpoint directories
 BASE_DIR_COLA = "checkpoints/cola_60m-2025-11-03-16-14-50"
 BASE_DIR_BASELINE = "../GaLore/checkpoints/llama_60m-2025-11-04-16-37-42"
-CHECKPOINTS = [f"model_{i}" for i in range(1000, 11000, 1000)]
+CHECKPOINTS = [f"model_{i}" for i in range(1000, 3000, 1000)]
 
 
 # ============================================================
