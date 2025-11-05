@@ -144,7 +144,7 @@ class LossLandscapeDrawer:
                 for p, p0, d in zip(self.model.parameters(), self.original_params, self.direction):
                     # p.data = p0 + alpha * d
                     p.data.copy_(p0 + alpha * d)
-            loss = compute_nll_loss(self.model, self.dataloader, target_tokens=1_000_000)
+            loss = compute_nll_loss(self.model, self.dataloader, pad_idx, target_tokens=1_000_000)
             losses.append(loss)
 
         # Restore parameters
