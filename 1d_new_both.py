@@ -134,7 +134,7 @@ class LossLandscapeDrawer:
         self.direction = [torch.randn_like(p.data).to(p.device) for p in model.parameters()] 
 
 
-    def synthesize_and_compute(self, x_min: float, x_max: float, x_interval: float) -> Dict[str, np.ndarray]:
+    def synthesize_and_compute(self, x_min: float, x_max: float, x_interval: float, pad_idx) -> Dict[str, np.ndarray]:
         alphas = np.arange(x_min, x_max + x_interval / 2, x_interval)
         losses = []
 
@@ -182,7 +182,7 @@ def main():
             model_cola = AutoModelForCausalLM.from_pretrained(model_path_cola, torch_dtype=torch.bfloat16, device_map="auto")
 
         drawer_cola = LossLandscapeDrawer(model_cola, dataloader)
-        result_cola = drawer_cola.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL)
+        result_cola = drawer_cola.synthesize_and_compute(ALPHA_MIN, ALPHA_MAX, ALPHA_INTERVAL, pad_idx)
         all_results_cola[m] = result_cola
         del model_cola # Free memory
         torch.cuda.empty_cache()
