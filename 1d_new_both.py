@@ -23,28 +23,65 @@ CHECKPOINTS = [f"model_{i}" for i in range(1000, 11000, 1000)]
 # =====================================================================
 # Compute NLL Loss (No Change Needed)
 # =====================================================================
-def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader) -> float:
+# def compute_nll_loss(model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader) -> float:
+#     model.eval()
+#     total_loss = 0.0
+#     total_batches = 0
+#     MAX_BATCHES = 100
+#     model_device = next(model.parameters()).device
+
+#     with torch.no_grad():
+#         for i, batch in enumerate(dataloader):
+#             if i >= MAX_BATCHES:
+#                 break
+#             if isinstance(batch, dict):
+#                 input_ids = batch["input_ids"].to(model_device)
+#                 attention_mask = batch["attention_mask"].to(model_device)
+#             else:
+#                 input_ids, attention_mask = [x.to(model_device) for x in batch]
+#             # Use labels=input_ids for standard Causal Language Modeling loss
+#             outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+#             total_loss += outputs.loss.item()
+#             total_batches += 1
+
+#     return total_loss / max(total_batches, 1)
+
+def compute_nll_loss(model, dataloader, pad_idx, target_tokens=1_000_000):
+    """
+    Compute token-normalized NLL that matches training evaluation.
+    """
     model.eval()
     total_loss = 0.0
-    total_batches = 0
-    MAX_BATCHES = 100
+    total_tokens = 0
     model_device = next(model.parameters()).device
 
     with torch.no_grad():
-        for i, batch in enumerate(dataloader):
-            if i >= MAX_BATCHES:
+        for (input_ids, attention_mask) in dataloader:
+            # Stop after reaching same token count as baseline eval
+            if total_tokens >= target_tokens:
                 break
-            if isinstance(batch, dict):
-                input_ids = batch["input_ids"].to(model_device)
-                attention_mask = batch["attention_mask"].to(model_device)
-            else:
-                input_ids, attention_mask = [x.to(model_device) for x in batch]
-            # Use labels=input_ids for standard Causal Language Modeling loss
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
-            total_loss += outputs.loss.item()
-            total_batches += 1
 
-    return total_loss / max(total_batches, 1)
+            input_ids = input_ids.to(model_device)
+            attention_mask = attention_mask.to(model_device)
+
+            # Mask out padding
+            labels = input_ids.clone()
+            labels[labels == pad_idx] = -100
+
+            outputs = model(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                labels=labels
+            )
+
+            batch_loss = outputs.loss.item()  # mean loss over non-masked tokens
+            batch_tokens = (labels != -100).sum().item()
+
+            total_loss += batch_loss * batch_tokens
+            total_tokens += batch_tokens
+
+    return total_loss / max(total_tokens, 1)
+
 
 
 # =====================================================================
@@ -107,7 +144,7 @@ class LossLandscapeDrawer:
                 for p, p0, d in zip(self.model.parameters(), self.original_params, self.direction):
                     # p.data = p0 + alpha * d
                     p.data.copy_(p0 + alpha * d)
-            loss = compute_nll_loss(self.model, self.dataloader)
+            loss = compute_nll_loss(self.model, self.dataloader, target_tokens=1_000_000)
             losses.append(loss)
 
         # Restore parameters
@@ -123,6 +160,7 @@ class LossLandscapeDrawer:
 # =====================================================================
 def main():
     tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-base")
+    pad_idx = tokenizer.pad_token_id
     dataloader = get_dataloader(tokenizer)
 
     all_results_cola = {}
