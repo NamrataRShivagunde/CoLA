@@ -87,40 +87,14 @@ def get_dataloader(tokenizer: AutoTokenizer):
 # Loss Landscape Drawer (No Change Needed)
 # =====================================================================
 class LossLandscapeDrawer:
-    # def __init__(self, model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader):
-    #     self.model = model
-    #     self.dataloader = dataloader
-    #     self.original_params = [p.data.clone() for p in model.parameters()]
-    #     # Use a consistent direction for all checkpoints
-    #     # For fair comparison, we could normalize or use the same random seed, 
-    #     # but sticking to the original implementation which uses a random direction per model.
-    #     self.direction = [torch.randn_like(p.data).to(p.device) for p in model.parameters()] 
-    class LossLandscapeDrawer:
-        def __init__(self, model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader):
-            self.model = model
-            self.dataloader = dataloader
-            self.original_params = {name: p.data.clone() for name, p in model.named_parameters()}
-
-            self.mode = "1D"  # "1D", "2D", etc.
-
-            # Construct directions
-            self.x_direction = {}
-            self.y_direction = {}
-
-            for name, param in self.model.named_parameters():
-                # --- X Direction ---
-                x = torch.randn_like(param.data)
-                # Normalize & scale to match param magnitude
-                x = x / (x.norm() + 1e-9) * (param.data.norm() + 1e-9)
-                self.x_direction[name] = x.to(param.device)
-
-                # --- Y Direction (only if 2D landscape) ---
-                if self.mode in ["2D", "3D", "contour"]:
-                    y = torch.randn_like(param.data)
-                    y = y / (y.norm() + 1e-9) * (param.data.norm() + 1e-9)
-                    self.y_direction[name] = y.to(param.device)
-                else:
-                    self.y_direction[name] = torch.zeros_like(param.data).to(param.device)
+    def __init__(self, model: AutoModelForCausalLM, dataloader: torch.utils.data.DataLoader):
+        self.model = model
+        self.dataloader = dataloader
+        self.original_params = [p.data.clone() for p in model.parameters()]
+        # Use a consistent direction for all checkpoints
+        # For fair comparison, we could normalize or use the same random seed, 
+        # but sticking to the original implementation which uses a random direction per model.
+        self.direction = [torch.randn_like(p.data).to(p.device) for p in model.parameters()] 
 
 
     def synthesize_and_compute(self, x_min: float, x_max: float, x_interval: float) -> Dict[str, np.ndarray]:
