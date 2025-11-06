@@ -1,3 +1,9 @@
+import torch
+import torch.nn as nn
+from transformers.activations import ACT2FN
+import torch.nn.functional as F
+
+
 # import torch
 # import torch.nn as nn
 # from transformers.activations import ACT2FN
@@ -128,10 +134,6 @@ class ColaMUpProjLayer(nn.Module):
 
         return out
 
-import torch
-import torch.nn as nn
-from transformers.activations import ACT2FN
-import torch.nn.functional as F
 
 
 def orthonormalize(W):
