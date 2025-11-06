@@ -64,8 +64,8 @@ def parse_args(args):
     parser.add_argument(
         "--scheduler",
         type=str,
-        default="cosine",
-        choices=["linear", "cosine", "cosine_restarts"],
+        default="warm_stable_decay",
+        choices=["linear", "cosine", "cosine_restarts", "warm_stable_decay"],
     )
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
