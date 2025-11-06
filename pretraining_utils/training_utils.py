@@ -335,10 +335,24 @@ def _warm_stable_decay_lambda(
     if current_step < warmup_steps + stable_steps:
         return 1.0
 
-    # Phase 3: Cosine decay
-    decay_step = current_step - (warmup_steps + stable_steps)
-    decay_total = max(1, num_training_steps - warmup_steps - stable_steps)
-    progress = float(decay_step) / decay_total
+    # # Phase 3: Cosine decay
+    # decay_step = current_step - (warmup_steps + stable_steps)
+    # decay_total = max(1, num_training_steps - warmup_steps - stable_steps)
+    # progress = float(decay_step) / decay_total
 
-    cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
-    return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
+    # cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+    # return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
+
+    # Phase 3: Linear decay
+    decay_start = warmup_steps + stable_steps
+    decay_step = current_step - decay_start
+    decay_total = max(1, num_training_steps - decay_start)
+
+    progress = float(decay_step) / float(decay_total)
+    progress = max(0.0, min(1.0, progress))  # clamp to [0,1]
+
+    # Linear interpolation:
+    # lr_multiplier = 1.0 at start of decay
+    # lr_multiplier = min_lr_ratio at end of training
+    return 1.0 - progress * (1.0 - min_lr_ratio)
+

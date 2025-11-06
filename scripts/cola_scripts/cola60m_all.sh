@@ -14,7 +14,7 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 main.py \
     --eval_every 1000 \
     --grad_clipping 0.5 \
     --run_name cola-60m-wsd \
-    --stable_steps 20
+    --stable_steps 10
 
 
 # tm11
