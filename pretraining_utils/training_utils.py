@@ -51,6 +51,18 @@ def get_scheculer(
             adjust_step=adjust_step,
         )
 
+    if scheduler_type == "warm_stable_decay":
+        return get_warm_stable_decay_schedule(
+            optimizer,
+            num_training_steps=num_training_steps,
+            warmup_steps=warmup_steps,
+            stable_steps=cycle_length,  # reuse cycle_length as plateau length
+            min_lr_ratio=min_lr_ratio,
+            last_epoch=last_epoch,
+        )
+
+    
+
     raise NotImplementedError(f"Scheduler {scheduler_type} is not implemented")
 
 
@@ -276,3 +288,54 @@ def build_optimizer(model, trainable_params, args):
 
 
     return optimizer
+
+
+# WSD related 
+
+def get_warm_stable_decay_schedule(
+    optimizer,
+    *,
+    num_training_steps,
+    warmup_steps,
+    stable_steps,
+    min_lr_ratio=0.1,
+    last_epoch=-1,
+):
+    """
+    Warm -> Stable Plateau -> Cosine Decay
+    """
+    lr_lambda = partial(
+        _warm_stable_decay_lambda,
+        num_training_steps=num_training_steps,
+        warmup_steps=warmup_steps,
+        stable_steps=stable_steps,
+        min_lr_ratio=min_lr_ratio,
+    )
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
+
+
+def _warm_stable_decay_lambda(
+    current_step,
+    *,
+    num_training_steps,
+    warmup_steps,
+    stable_steps,
+    min_lr_ratio,
+):
+    assert 0 < min_lr_ratio <= 1.0
+
+    # Phase 1: Warmup
+    if current_step < warmup_steps:
+        return float(current_step) / float(max(1, warmup_steps))
+
+    # Phase 2: Stable
+    if current_step < warmup_steps + stable_steps:
+        return 1.0
+
+    # Phase 3: Cosine decay
+    decay_step = current_step - (warmup_steps + stable_steps)
+    decay_total = max(1, num_training_steps - warmup_steps - stable_steps)
+    progress = float(decay_step) / decay_total
+
+    cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+    return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
