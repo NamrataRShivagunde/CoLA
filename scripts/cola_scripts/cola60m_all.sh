@@ -7,14 +7,14 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 main.py \
     --optimizer adamw \
     --batch_size 128 \
     --total_batch_size 512 \
-    --num_training_steps 100 \
-    --warmup_steps 20 \
+    --num_training_steps 50 \
+    --warmup_steps 10 \
     --weight_decay 0.01 \
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping 0.5 \
     --run_name cola-60m-wsd \
-    --stable_steps 70
+    --stable_steps 20
 
 
 # tm11
