@@ -137,9 +137,11 @@ class ColaMUpProjLayer(nn.Module):
 
 
 def orthonormalize(W):
-    # Enforces UᵀU = I (QR is stable & differentiable enough)
-    Q, _ = torch.linalg.qr(W)
-    return Q
+    # QR must run in float32 on GPU
+    W32 = W.float()
+    Q, _ = torch.linalg.qr(W32)  # orthonormal basis in FP32
+    return Q.to(W.dtype)  # cast back to bf16 if needed
+
 
 
 class ColaLayer(nn.Module):
