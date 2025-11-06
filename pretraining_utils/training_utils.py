@@ -14,6 +14,7 @@ def get_scheculer(
     num_training_steps,
     warmup_steps,
     min_lr_ratio,
+    stable_steps=None,
     cycle_length=None,
     restart_warmup_steps=None,
     adjust_step=0,
@@ -56,7 +57,7 @@ def get_scheculer(
             optimizer,
             num_training_steps=num_training_steps,
             warmup_steps=warmup_steps,
-            stable_steps=cycle_length,  # reuse cycle_length as plateau length
+            stable_steps=stable_steps,  # reuse cycle_length as plateau length
             min_lr_ratio=min_lr_ratio,
             last_epoch=last_epoch,
         )
