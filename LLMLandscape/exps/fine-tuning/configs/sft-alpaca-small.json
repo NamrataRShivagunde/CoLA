@@ -1,0 +1,13 @@
+{
+  "zero_allow_untested_optimizer": true,
+  "zero_optimization": {
+    "stage": 0,
+    "offload_param": {
+      "device": "cpu"
+    }
+  },
+  "bf16": {
+    "enabled": true
+  },
+  "train_batch_size": "auto"
+}
