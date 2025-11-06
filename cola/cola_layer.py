@@ -136,63 +136,63 @@ class ColaMUpProjLayer(nn.Module):
 
 
 
-def orthonormalize(W):
-    # QR must run in float32 on GPU
-    W32 = W.float()
-    Q, _ = torch.linalg.qr(W32)  # orthonormal basis in FP32
-    return Q.to(W.dtype)  # cast back to bf16 if needed
+# def orthonormalize(W):
+#     # QR must run in float32 on GPU
+#     W32 = W.float()
+#     Q, _ = torch.linalg.qr(W32)  # orthonormal basis in FP32
+#     return Q.to(W.dtype)  # cast back to bf16 if needed
 
 
 
-class ColaLayer(nn.Module):
-    """
-    W = (U Q) (P V)  = U (Q P) Vᵀ
-    where U and V are learned orthonormal subspaces (d x r),
-    and Z = Q P is a freely-learned r x r mixing matrix.
-    """
-    def __init__(self, in_features, out_features, rank, bias=True, lr_act=True, lr_act_type="silu"):
-        super().__init__()
+# class ColaLayer(nn.Module):
+#     """
+#     W = (U Q) (P V)  = U (Q P) Vᵀ
+#     where U and V are learned orthonormal subspaces (d x r),
+#     and Z = Q P is a freely-learned r x r mixing matrix.
+#     """
+#     def __init__(self, in_features, out_features, rank, bias=True, lr_act=True, lr_act_type="silu"):
+#         super().__init__()
 
-        self.in_features = in_features
-        self.out_features = out_features
-        self.rank = rank
+#         self.in_features = in_features
+#         self.out_features = out_features
+#         self.rank = rank
 
-        # --- Learn subspace bases (will be re-orthonormalized in forward) ---
-        self.U = nn.Parameter(torch.randn(in_features, rank))
-        self.V = nn.Parameter(torch.randn(out_features, rank))
+#         # --- Learn subspace bases (will be re-orthonormalized in forward) ---
+#         self.U = nn.Parameter(torch.randn(in_features, rank))
+#         self.V = nn.Parameter(torch.randn(out_features, rank))
 
-        # --- Learn mixing matrix in latent r x r space ---
-        self.Z = nn.Parameter(torch.randn(rank, rank) * (1.0 / rank**0.5))
+#         # --- Learn mixing matrix in latent r x r space ---
+#         self.Z = nn.Parameter(torch.randn(rank, rank) * (1.0 / rank**0.5))
 
-        if lr_act:
-            self.lr_act = ACT2FN[lr_act_type]
+#         if lr_act:
+#             self.lr_act = ACT2FN[lr_act_type]
 
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(out_features))
-        else:
-            self.bias = None
+#         if bias:
+#             self.bias = nn.Parameter(torch.zeros(out_features))
+#         else:
+#             self.bias = None
 
-    def forward(self, x):
-        # Re-orthonormalize subspaces dynamically (key to rotating subspace)
-        U = orthonormalize(self.U)  # (d_in x r)
-        V = orthonormalize(self.V)  # (d_out x r)
+#     def forward(self, x):
+#         # Re-orthonormalize subspaces dynamically (key to rotating subspace)
+#         U = orthonormalize(self.U)  # (d_in x r)
+#         V = orthonormalize(self.V)  # (d_out x r)
 
-        # Effective low-rank weight
-        # W = U Z Vᵀ
-        weight = U @ self.Z @ V.t()  # (d_in x d_out)
+#         # Effective low-rank weight
+#         # W = U Z Vᵀ
+#         weight = U @ self.Z @ V.t()  # (d_in x d_out)
 
-        out = x @ weight
+#         out = x @ weight
 
-        if hasattr(self, "lr_act"):
-            out = self.lr_act(out)
+#         if hasattr(self, "lr_act"):
+#             out = self.lr_act(out)
 
-        if self.bias is not None:
-            out += self.bias
+#         if self.bias is not None:
+#             out += self.bias
 
-        return out
+#         return out
 
-    def extra_repr(self):
-        return (
-            f"U: {self.U.shape}, V: {self.V.shape}, Z: {self.Z.shape}, "
-            f"bias: {self.bias.shape if self.bias is not None else False}"
-        )
+#     def extra_repr(self):
+#         return (
+#             f"U: {self.U.shape}, V: {self.V.shape}, Z: {self.Z.shape}, "
+#             f"bias: {self.bias.shape if self.bias is not None else False}"
+#         )
