@@ -1,5 +1,6 @@
 
 # tm10
+# 60% stable so 20% decay  # 20% warmup
 CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 main.py \
     --model_type cola \
     --model_config cola_configs/cola_60m.json \
@@ -7,14 +8,15 @@ CUDA_VISIBLE_DEVICES=1 torchrun --standalone --nproc-per-node=1 main.py \
     --optimizer adamw \
     --batch_size 128 \
     --total_batch_size 512 \
-    --num_training_steps 50 \
-    --warmup_steps 10 \
+    --num_training_steps 10000 \
+    --warmup_steps 2000 \
     --weight_decay 0.01 \
     --dtype bfloat16 \
     --eval_every 1000 \
     --grad_clipping 0.5 \
     --run_name cola-60m-wsd \
-    --stable_steps 30
+    --stable_steps 6000 \ 
+    --save_every 20000
 
 
 # tm11

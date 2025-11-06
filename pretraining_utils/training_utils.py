@@ -325,7 +325,7 @@ def _warm_stable_decay_lambda(
 ):
     assert 0 < min_lr_ratio <= 1.0
 
-    print(f"current_step: {current_step}, warmup_steps: {warmup_steps}, stable_steps: {stable_steps}, num_training_steps: {num_training_steps}")
+    # print(f"current_step: {current_step}, warmup_steps: {warmup_steps}, stable_steps: {stable_steps}, num_training_steps: {num_training_steps}")
 
     # Phase 1: Warmup
     if current_step < warmup_steps:
