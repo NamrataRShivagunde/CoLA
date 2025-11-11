@@ -47,6 +47,7 @@ def parse_args(args):
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--warmup_steps", type=int, default=1_000)
+    parser.add_argument("--stable_steps", type=int, default=0)
     parser.add_argument("--eval_every", type=int, default=5_000)
     parser.add_argument("--num_training_steps", type=int, default=10_000,
                         help="Number of **update steps** to train for. "
@@ -351,6 +352,7 @@ def main(args):
                     scheduler_type=args.scheduler,
                     num_training_steps=args.num_training_steps * 2,
                     warmup_steps=args.warmup_steps * 2,
+                    stable_steps=args.stable_steps * 2,
                     min_lr_ratio=args.min_lr_ratio,
                 )
 
