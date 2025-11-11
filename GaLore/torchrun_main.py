@@ -379,6 +379,7 @@ def main(args):
             scheduler_type=args.scheduler,
             num_training_steps=args.num_training_steps,
             warmup_steps=args.warmup_steps,
+            stable_steps=args.stable_steps,
             min_lr_ratio=args.min_lr_ratio,
         )
 
