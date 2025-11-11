@@ -4,6 +4,7 @@ from functools import partial
 import torch
 from torch.optim.lr_scheduler import LambdaLR
 import transformers
+import bitsandbytes as bnb
 
 
 def get_scheculer(
@@ -13,6 +14,7 @@ def get_scheculer(
     num_training_steps,
     warmup_steps,
     min_lr_ratio,
+    stable_steps=None,
     cycle_length=None,
     restart_warmup_steps=None,
     adjust_step=0,
@@ -49,6 +51,18 @@ def get_scheculer(
             last_epoch=last_epoch,
             adjust_step=adjust_step,
         )
+
+    if scheduler_type == "warm_stable_decay":
+        return get_warm_stable_decay_schedule(
+            optimizer,
+            num_training_steps=num_training_steps,
+            warmup_steps=warmup_steps,
+            stable_steps=stable_steps,  # reuse cycle_length as plateau length
+            min_lr_ratio=min_lr_ratio,
+            last_epoch=last_epoch,
+        )
+
+    
 
     raise NotImplementedError(f"Scheduler {scheduler_type} is not implemented")
 
@@ -162,8 +176,8 @@ def _get_cosine_schedule_with_multiple_warmups_lambda(
     """
     assert 0 < min_lr_ratio <= 1.0, "min_lr_ratio must be in (0,1]"
     assert restart_every > 0, "restart_every must be positive"
-    assert adjust_step + first_warmup_steps < num_training_steps, "warmup + adjust_step is more than full training steps"
-    assert adjust_step + first_warmup_steps < restart_every, "the first reset will happen before the warmup is done"
+    assert adjust_step + first_warmup_steps <= num_training_steps, "warmup + adjust_step is more than full training steps"
+    assert adjust_step + first_warmup_steps <= restart_every, "the first reset will happen before the warmup is done"
 
     if current_step < first_warmup_steps:
         return float(current_step) / float(max(1, first_warmup_steps))
@@ -218,3 +232,127 @@ def max_train_tokens_to_number(max_train_tokens):
         return int(max_train_tokens.rstrip("B")) * 1_000_000_000
     else:
         return int(max_train_tokens)
+    
+
+def build_optimizer(model, trainable_params, args):
+    if args.optimizer.lower() == "adam":
+        optimizer = torch.optim.Adam(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
+    elif args.optimizer.lower() == "adamw":
+        optimizer = torch.optim.AdamW(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
+    elif args.optimizer.lower() == "sgd":
+        optimizer = torch.optim.SGD(trainable_params, lr=args.lr, weight_decay=args.weight_decay, momentum=args.beta1)
+    elif args.optimizer.lower() == "adafactor":
+        args.beta1 = None if args.beta1 == 0.0 else args.beta1
+        optimizer = transformers.optimization.Adafactor(
+            trainable_params,
+            lr=args.lr,
+            eps=(1e-30, 1e-3),
+            clip_threshold=1.0,
+            decay_rate=-0.8,
+            beta1=args.beta1,
+            weight_decay=args.weight_decay,
+            relative_step=False,
+            scale_parameter=False,
+            warmup_init=False,
+        )
+    elif args.optimizer.lower() == "adam8bit":
+        optimizer = bnb.optim.Adam8bit(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
+    elif args.optimizer.lower() == "adam8bit_per_layer":
+        optimizer = {}
+        for p in model.parameters():
+            if p.requires_grad:
+                optimizer[p] = bnb.optim.Adam8bit([p], lr=args.lr, weight_decay=args.weight_decay)
+        # get scheduler dict
+        scheduler_dict = {}
+        for p in model.parameters():
+            if p.requires_grad:
+                scheduler_dict[p] = get_scheculer(
+                    optimizer=optimizer[p],
+                    scheduler_type=args.scheduler,
+                    num_training_steps=args.num_training_steps * 2,
+                    warmup_steps=args.warmup_steps * 2,
+                    min_lr_ratio=args.min_lr_ratio,
+                )
+        def optimizer_hook(p):
+            if p.grad is None:
+                return
+            optimizer[p].step()
+            optimizer[p].zero_grad()
+            scheduler_dict[p].step()
+
+        # Register the hook onto every parameter
+        for p in model.parameters():
+            if p.requires_grad:
+                p.register_post_accumulate_grad_hook(optimizer_hook)
+    else:
+        raise ValueError(f"Optimizer {args.optimizer} not supported")
+
+
+    return optimizer
+
+
+# WSD related 
+
+def get_warm_stable_decay_schedule(
+    optimizer,
+    *,
+    num_training_steps,
+    warmup_steps,
+    stable_steps,
+    min_lr_ratio=0.1,
+    last_epoch=-1,
+):
+    """
+    Warm -> Stable Plateau -> Cosine Decay
+    """
+    lr_lambda = partial(
+        _warm_stable_decay_lambda,
+        num_training_steps=num_training_steps,
+        warmup_steps=warmup_steps,
+        stable_steps=stable_steps,
+        min_lr_ratio=min_lr_ratio,
+    )
+    return LambdaLR(optimizer, lr_lambda, last_epoch)
+
+
+def _warm_stable_decay_lambda(
+    current_step,
+    *,
+    num_training_steps,
+    warmup_steps,
+    stable_steps,
+    min_lr_ratio,
+):
+    assert 0 < min_lr_ratio <= 1.0
+
+    # print(f"current_step: {current_step}, warmup_steps: {warmup_steps}, stable_steps: {stable_steps}, num_training_steps: {num_training_steps}")
+
+    # Phase 1: Warmup
+    if current_step < warmup_steps:
+        return float(current_step) / float(max(1, warmup_steps))
+
+    # Phase 2: Stable
+    if current_step < warmup_steps + stable_steps:
+        return 1.0
+
+    # # Phase 3: Cosine decay
+    # decay_step = current_step - (warmup_steps + stable_steps)
+    # decay_total = max(1, num_training_steps - warmup_steps - stable_steps)
+    # progress = float(decay_step) / decay_total
+
+    # cosine_decay = 0.5 * (1.0 + math.cos(math.pi * progress))
+    # return min_lr_ratio + (1.0 - min_lr_ratio) * cosine_decay
+
+    # Phase 3: Linear decay
+    decay_start = warmup_steps + stable_steps
+    decay_step = current_step - decay_start
+    decay_total = max(1, num_training_steps - decay_start)
+
+    progress = float(decay_step) / float(decay_total)
+    progress = max(0.0, min(1.0, progress))  # clamp to [0,1]
+
+    # Linear interpolation:
+    # lr_multiplier = 1.0 at start of decay
+    # lr_multiplier = min_lr_ratio at end of training
+    return 1.0 - progress * (1.0 - min_lr_ratio)
+

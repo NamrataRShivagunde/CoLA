@@ -42,7 +42,7 @@ def parse_args(args):
     parser.add_argument("--max_length", type=int, default=256)
     parser.add_argument("--optimizer", default="Adam")
     parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--scheduler", type=str, default="cosine", choices=["linear", "cosine", "cosine_restarts"])
+    parser.add_argument("--scheduler", type=str, default="cosine", choices=["linear", "cosine", "cosine_restarts", "warm_stable_decay"])
     parser.add_argument("--min_lr_ratio", type=float, default=0.1)
     parser.add_argument("--activation_checkpointing", action="store_true")
     parser.add_argument("--weight_decay", type=float, default=0.0)
@@ -158,7 +158,7 @@ def main(args):
             
     # initialize wandb without config (it is passed later)
     if global_rank == 0:
-        wandb.init(project="galore-c4")
+        wandb.init(project="loss-landscape-low-rank")
         
     logger.info(f"Using dist with rank {global_rank} (only rank 0 will log)")
     logger.info("*" * 40)
